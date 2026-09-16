@@ -1,0 +1,122 @@
+Table roles {
+  role_id int [pk, increment]
+  role_name varchar(50) [not null, unique]
+}
+
+Table users {
+  user_id int [pk, increment]
+  role_id int [not null, ref: > roles.role_id]
+  full_name varchar(100) [not null]
+  email varchar(100) [not null, unique]
+  password_hash varchar(255) [not null]
+  phone varchar(20)
+  is_active boolean [default: true]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table applicant_profiles {
+  applicant_id int [pk, ref: - users.user_id]
+  headline varchar(150)
+  resume_url varchar(255)
+  years_experience decimal(4,1)
+  education_level varchar(50)
+  location varchar(100)
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table skills {
+  skill_id int [pk, increment]
+  skill_name varchar(80) [not null, unique]
+  category varchar(50)
+}
+
+Table applicant_skills {
+  applicant_id int [ref: > applicant_profiles.applicant_id]
+  skill_id int [ref: > skills.skill_id]
+  proficiency_level varchar(20)
+
+  indexes {
+    (applicant_id, skill_id) [pk]
+  }
+}
+
+Table job_postings {
+  job_id int [pk, increment]
+  hr_id int [not null, ref: > users.user_id]
+  title varchar(120) [not null]
+  description text
+  employment_type varchar(30)
+  min_experience decimal(4,1)
+  status varchar(20) [default: 'Active']
+  posted_at timestamp [default: `CURRENT_TIMESTAMP`]
+  closing_date date
+}
+
+Table job_required_skills {
+  job_id int [ref: > job_postings.job_id]
+  skill_id int [ref: > skills.skill_id]
+  importance_level varchar(20)
+
+  indexes {
+    (job_id, skill_id) [pk]
+  }
+}
+
+Table applications {
+  application_id int [pk, increment]
+  job_id int [not null, ref: > job_postings.job_id]
+  applicant_id int [not null, ref: > applicant_profiles.applicant_id]
+  applied_at timestamp [default: `CURRENT_TIMESTAMP`]
+  status varchar(30) [default: 'Submitted']
+  match_score decimal(5,2)
+}
+
+Table assessments {
+  assessment_id int [pk, increment]
+  job_id int [not null, ref: > job_postings.job_id]
+  title varchar(120) [not null]
+  passing_score decimal(5,2) [default: 70.00]
+}
+
+Table assessment_questions {
+  question_id int [pk, increment]
+  assessment_id int [not null, ref: > assessments.assessment_id]
+  question_text text [not null]
+  question_type varchar(20)
+  correct_answer text
+}
+
+Table application_assessment_results {
+  result_id int [pk, increment]
+  application_id int [not null, ref: > applications.application_id]
+  assessment_id int [not null, ref: > assessments.assessment_id]
+  score decimal(5,2)
+  completed_at timestamp
+}
+
+Table ai_prescreen_responses {
+  response_id int [pk, increment]
+  application_id int [not null, ref: > applications.application_id]
+  question_text text [not null]
+  applicant_response text
+  ai_flag_notes varchar(255)
+}
+
+Table interviews {
+  interview_id int [pk, increment]
+  application_id int [not null, ref: > applications.application_id]
+  hr_id int [not null, ref: > users.user_id]
+  scheduled_at timestamp
+  mode varchar(20)
+  status varchar(20) [default: 'Scheduled']
+  feedback text
+}
+
+Table notifications {
+  notification_id int [pk, increment]
+  user_id int [not null, ref: > users.user_id]
+  message varchar(255) [not null]
+  type varchar(30)
+  is_read boolean [default: false]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
